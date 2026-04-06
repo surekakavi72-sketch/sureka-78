@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUREKA | X-DIMENSION</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;900&family=Space+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #000000;
+            --accent: #00f2ff;
+            --secondary: #7000ff;
+            --panel: rgba(15, 15, 15, 0.9);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            /* Critical for 3D */
+            perspective: 1200px; 
+        }
+
+        #canvas-dots {
+            position: fixed;
+            top: 0; left: 0; z-index: 0;
+        }
+
+        /* --- THE 3D STAGE --- */
+        #viewport {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #scene {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .section-panel {
+            position: absolute;
+            width: 70vw;
+            height: 50vh;
+            background: var(--panel);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            backdrop-filter: blur(15px);
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-radius: 8px;
+            backface-visibility: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        /* Fixed Z-Positions for sections */
+        .panel-1 { transform: translateZ(0px); }
+        .panel-2 { transform: translateZ(-2500px); }
+        .panel-3 { transform: translateZ(-5000px); }
+
+        /* --- CONTENT STYLES --- */
+        .glitch {
+            font-size: clamp(3rem, 12vw, 10rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+            color: white;
+            text-shadow: 2px 2px var(--secondary);
+        }
+
+        h2 { font-size: 3rem; color: var(--accent); margin-bottom: 20px; text-transform: uppercase; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .card {
+            border-left: 2px solid var(--accent);
+            padding: 15px 25px;
+            background: rgba(255,255,255,0.03);
+            transition: 0.3s;
+        }
+
+        .card:hover { background: rgba(0, 242, 255, 0.1); }
+
+        /* --- NAVIGATION --- */
+        .nav-ui {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .btn {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 12px 30px;
+            font-family: 'Space Mono', monospace;
+            cursor: pointer;
+            transition: all 0.4s;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+        }
+
+        .btn:hover, .btn.active {
+            background: var(--accent);
+            color: black;
+            box-shadow: 0 0 30px var(--accent);
+            transform: translateY(-5px);
+        }
+
+        /* Hide logic for clean visuals */
+        .hidden-panel { opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+        .visible-panel { opacity: 1; pointer-events: all; transition: opacity 1s; }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas-dots"></canvas>
+
+    <div id="viewport">
+        <div id="scene">
+            <div class="section-panel panel-1 visible-panel" id="p1">
+                <h1 class="glitch">SUREKA</h1>
+                <p style="color: var(--accent); font-family: 'Space Mono'; margin-top: 10px;">
+                    SYSTEM_INIT: SUCCESSFUL // PORTFOLIO_V4.0
+                </p>
+            </div>
+
+            <div class="section-panel panel-2 hidden-panel" id="p2">
+                <h2>SELECTED_WORKS</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h4>NEO-CORE</h4>
+                        <p style="font-size: 0.8rem; opacity: 0.6;">High-performance Web Engine</p>
+                    </div>
+                    <div class="card">
+                        <h4>VOID_UI</h4>
+                        <p style="font-size: 0.8rem; opacity: 0.6;">Minimalist CSS Framework</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-panel panel-3 hidden-panel" id="p3">
+                <h2>SYSTEM_DATA</h2>
+                <div style="font-family: 'Space Mono'; line-height: 1.8; color: #ccc;">
+                    <p>> PRIMARY_SKILLS: [JAVASCRIPT, WEBGL, RUST]</p>
+                    <p>> UI_AESTHETICS: [BRUTALISM, CYBERPUNK]</p>
+                    <p>> STATUS: AVAILABLE_FOR_HIRE</p>
+                    <p style="margin-top: 20px; color: var(--accent);">>> CONTACT: SUREKA.DEV@PORTAL.IO</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-ui">
+        <button class="btn active" onclick="go(1)">Home</button>
+        <button class="btn" onclick="go(2)">Work</button>
+        <button class="btn" onclick="go(3)">Data</button>
+    </div>
+
+    <script>
+        // 1. Z-AXIS FLIGHT LOGIC
+        function go(num) {
+            const scene = document.getElementById('scene');
+            const btns = document.querySelectorAll('.btn');
+            
+            // Step 1: Calculate the Z movement
+            // We move the scene FORWARD so the distant panels arrive at Z=0
+            let zMove = (num - 1) * 2500; 
+            scene.style.transform = `translateZ(${zMove}px)`;
+
+            // Step 2: UI Updates
+            btns.forEach((b, i) => {
+                b.classList.toggle('active', i === (num - 1));
+            });
+
+            // Step 3: Visibility management (prevents clicking items through other panels)
+            document.querySelectorAll('.section-panel').forEach((p, i) => {
+                if(i === (num - 1)) {
+                    p.classList.remove('hidden-panel');
+                    p.classList.add('visible-panel');
+                } else {
+                    p.classList.add('hidden-panel');
+                    p.classList.remove('visible-panel');
+                }
+            });
+        }
+
+        // 2. STARFIELD BACKGROUND (Fixed and optimized)
+        const canvas = document.getElementById('canvas-dots');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+
+        function initStars() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            stars = [];
+            for(let i=0; i<400; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width - canvas.width/2,
+                    y: Math.random() * canvas.height - canvas.height/2,
+                    z: Math.random() * canvas.width,
+                    px: 0, py: 0
+                });
+            }
+        }
+
+        function updateStars() {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            stars.forEach(s => {
+                s.z -= 2;
+                if (s.z <= 0) s.z = canvas.width;
+
+                const x = (s.x / s.z) * cx + cx;
+                const y = (s.y / s.z) * cy + cy;
+                const r = (1 - s.z / canvas.width) * 2;
+
+                ctx.fillStyle = `rgba(0, 242, 255, ${1 - s.z/canvas.width})`;
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            requestAnimationFrame(updateStars);
+        }
+
+        initStars();
+        updateStars();
+        window.addEventListener('resize', initStars);
+
+        // 3. MOUSE PARALLAX (Subtle movement)
+        document.addEventListener('mousemove', (e) => {
+            const x = (window.innerWidth / 2 - e.clientX) / 70;
+            const y = (window.innerHeight / 2 - e.clientY) / 70;
+            // Apply slight tilt to the whole viewport
+            document.getElementById('viewport').style.transform = `rotateY(${-x}deg) rotateX(${y}deg)`;
+        });
+    </script>
+</body>
+</html>
